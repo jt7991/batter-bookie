@@ -33,5 +33,5 @@ RUN bun install --production
 EXPOSE 3000
 
 # Start the application
-CMD ["bun", "run", ".output/server/index.mjs"]
+CMD ["bun", "run", "start"]
 
