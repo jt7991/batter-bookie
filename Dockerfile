@@ -1,6 +1,6 @@
 # Stage 1: Build the application
 # Use the official Bun image as the base for the build stage.
-FROM oven/bun:1 as builder
+FROM docker.io/oven/bun:1 as builder
 
 # Set the working directory inside the container.
 WORKDIR /app
@@ -28,7 +28,7 @@ RUN ls -laR .output
 # Stage 2: Create the production-ready image
 # Use a fresh, official Bun image for the final production image.
 # This keeps the final image size minimal by excluding build-time dependencies.
-FROM oven/bun:1
+FROM docker.io/oven/bun:1
 
 # Set the working directory for the production application.
 WORKDIR /app
