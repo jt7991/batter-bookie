@@ -22,7 +22,7 @@ FROM oven/bun:1
 WORKDIR /app
 
 # Copy built assets from base stage
-COPY --from=base /app/dist ./dist
+COPY --from=base /app/.output
 COPY --from=base /app/package.json ./package.json
 COPY --from=base /app/bun.lock ./bun.lock
 
