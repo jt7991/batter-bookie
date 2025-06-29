@@ -5,7 +5,7 @@ FROM oven/bun:1 as base
 WORKDIR /app
 
 # Copy package files
-COPY package.json bun.lockb ./
+COPY package.json bun.lock ./
 
 # Install dependencies
 RUN bun install
@@ -24,7 +24,7 @@ WORKDIR /app
 # Copy built assets from base stage
 COPY --from=base /app/dist ./dist
 COPY --from=base /app/package.json ./package.json
-COPY --from=base /app/bun.lockb ./bun.lockb
+COPY --from=base /app/bun.lock ./bun.lock
 
 # Install production dependencies only
 RUN bun install --production
