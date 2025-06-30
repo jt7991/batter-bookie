@@ -25,6 +25,7 @@ WORKDIR /app
 COPY --from=base /app/.output ./.output
 COPY --from=base /app/package.json ./package.json
 COPY --from=base /app/bun.lock ./bun.lock
+COPY --from=base /app/scripts ./scripts
 
 # Install production dependencies only
 RUN bun install --production
