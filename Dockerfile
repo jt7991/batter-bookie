@@ -21,9 +21,6 @@ FROM oven/bun:1
 
 WORKDIR /app
 
-# Bun images contain a non-root user `bun`
-USER bun
-
 # Copy built assets from base stage
 COPY --from=base /app/.output ./.output
 COPY --from=base /app/package.json ./package.json
