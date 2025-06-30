@@ -1,7 +1,7 @@
-# Stage 1: Build the application
-FROM docker.io/oven/bun:1 as builder
+# Use the official Bun image
+FROM oven/bun:1 as base
 
-# Set the working directory inside the container
+# Set working directory
 WORKDIR /app
 
 # Copy package files
@@ -10,40 +10,31 @@ COPY package.json bun.lock ./
 # Install dependencies
 RUN bun install
 
-# Copy the rest of the application source code
+# Copy the rest of the application
 COPY . .
-
-# Set permissions for the app directory
-RUN chown -R bun:bun /app
-
-# Switch to non-root user
-USER bun
 
 # Build the application
 RUN bun run build
 
-# List contents for debugging
-RUN ls -laR .output
-
-# Stage 2: Production image
-FROM docker.io/oven/bun:1
+# Production stage
+FROM oven/bun:1
 
 WORKDIR /app
 
-# Copy built assets and config files from builder
-COPY --from=builder --chown=bun:bun /app/.output /.output
-COPY --from=builder --chown=bun:bun /app/package.json ./package.json
-COPY --from=builder --chown=bun:bun /app/bun.lock ./bun.lock
-
-# Switch to non-root user
+# Bun images contain a non-root user `bun`
 USER bun
 
-# Install production dependencies
-RUN bun install --production --frozen-lockfile
+# Copy built assets from base stage
+COPY --from=base /app/.output ./.output
+COPY --from=base /app/package.json ./package.json
+COPY --from=base /app/bun.lock ./bun.lock
+
+# Install production dependencies only
+RUN bun install --production
 
 # Expose port
 EXPOSE 3000
 
 # Start the application
-CMD ["bun", "run", ".output/server/index.mjs"]
+CMD ["bun", "run", "start"]
 
