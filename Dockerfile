@@ -22,10 +22,7 @@ FROM oven/bun:1
 WORKDIR /app
 
 # Copy built assets from base stage
-COPY --from=base /app/.output ./.output
-COPY --from=base /app/package.json ./package.json
-COPY --from=base /app/bun.lock ./bun.lock
-COPY --from=base /app/scripts ./scripts
+COPY --from=base /app .
 
 # Install production dependencies only
 RUN bun install --production
