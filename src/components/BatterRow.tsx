@@ -45,9 +45,10 @@ export function BatterRow({
             src={`https://www.rotowire.com/${batter.url}`}
             height={"50000"}
             className={`pt-2 w-full`}
-            onLoad={() => {
-              const isMobile = window.innerWidth < 640; // sm breakpoint in Tailwind
-              ref.current?.scrollTo(0, isMobile ? 150 : 250);
+            onLoad={(e) => {
+              const iframe = e.target as HTMLIFrameElement;
+              const isMobile = iframe.clientWidth < 780;
+              ref.current?.scrollTo(0, isMobile ? 150 : 200);
             }}
           />
         </div>

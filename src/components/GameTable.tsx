@@ -11,13 +11,15 @@ export const GameCard = ({
     date: Date;
     homeTeam: { name: string; id: string };
     awayTeam: { name: string; id: string };
+    awayLineupConfirmed: boolean;
+    homeLineupConfirmed: boolean;
   };
 }) => {
   return (
     <div className="bg-slate-700 shadow rounded-lg">
       <div className="mb-2 bg-slate-900 p-4 rounded-t-lg flex flex-row justify-between">
         <h2 className="font-bold text-2xl">
-          {game.homeTeam.name} at {game.awayTeam.name}
+          {game.awayTeam.name} at {game.homeTeam.name}
         </h2>
         <h2 className="font-bold text-sm">
           {dayjs(game.date).format("h:mm A z")}
@@ -29,21 +31,24 @@ export const GameCard = ({
             className="p-4 rounded-t-lg "
             style={{
               backgroundColor:
-                TEAM_COLORS?.[game.homeTeam.name as keyof typeof TEAM_COLORS]
+                TEAM_COLORS?.[game.awayTeam.name as keyof typeof TEAM_COLORS]
                   .primary,
             }}
           >
             <h3
-              className={`text-xl font-bold ${
-                TEAM_COLORS?.[game.homeTeam.name as keyof typeof TEAM_COLORS]
+              className={`text-xl font-bold flex justify-between items-center ${
+                TEAM_COLORS?.[game.awayTeam.name as keyof typeof TEAM_COLORS]
                   .text
               }`}
             >
-              {game.homeTeam.name}
+              <span>{game.awayTeam.name}</span>
+              <span title={game.awayLineupConfirmed ? "Away lineup confirmed" : "Away lineup not confirmed"}>
+                {game.awayLineupConfirmed ? "✅" : "❌"}
+              </span>
             </h3>
           </div>
           <Suspense>
-            <LineupSection teamId={game.homeTeam.id} gameId={game.id} />
+            <LineupSection teamId={game.awayTeam.id} gameId={game.id} />
           </Suspense>
         </div>
         <div>
@@ -51,21 +56,24 @@ export const GameCard = ({
             className="p-4 rounded-t-lg "
             style={{
               backgroundColor:
-                TEAM_COLORS?.[game.awayTeam.name as keyof typeof TEAM_COLORS]
+                TEAM_COLORS?.[game.homeTeam.name as keyof typeof TEAM_COLORS]
                   .primary,
             }}
           >
             <h3
-              className={`text-xl font-bold ${
-                TEAM_COLORS?.[game.awayTeam.name as keyof typeof TEAM_COLORS]
+              className={`text-xl font-bold flex justify-between items-center ${
+                TEAM_COLORS?.[game.homeTeam.name as keyof typeof TEAM_COLORS]
                   .text
               }`}
             >
-              {game.awayTeam.name}
+              <span>{game.homeTeam.name}</span>
+              <span title={game.homeLineupConfirmed ? "Home lineup confirmed" : "Home lineup not confirmed"}>
+                {game.homeLineupConfirmed ? "✅" : "❌"}
+              </span>
             </h3>
           </div>
           <Suspense>
-            <LineupSection teamId={game.awayTeam.id} gameId={game.id} />
+            <LineupSection teamId={game.homeTeam.id} gameId={game.id} />
           </Suspense>
         </div>
       </div>

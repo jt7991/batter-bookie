@@ -1,4 +1,11 @@
-import { pgTable, unique, uuid, varchar, smallint } from "drizzle-orm/pg-core";
+import {
+  pgTable,
+  unique,
+  uuid,
+  varchar,
+  smallint,
+  text,
+} from "drizzle-orm/pg-core";
 import { pitchersTable } from "./pitchers";
 import { gamesTable } from "./games";
 import { relations, sql } from "drizzle-orm";
@@ -11,7 +18,7 @@ export const battersGameInfoTable = pgTable("batterGameInfo", {
   position: varchar({ length: 255 }).notNull(),
   battingOrder: smallint().notNull(),
   batterId: varchar({ length: 255 }).references(() => batterTable.id),
-  gameId: uuid().references(() => gamesTable.id),
+  gameId: text().references(() => gamesTable.id),
 });
 
 export const battersGameInfoRelations = relations(

@@ -30,9 +30,11 @@ interface Team {
   startingPitcherThrows: string;
   pitcherId: string;
   pitcherLink: string;
+  lineupConfirmed: boolean;
 }
 
 interface Game {
+  id: string;
   homeTeam: Team;
   awayTeam: Team;
   date: number;
@@ -65,10 +67,16 @@ async function scrapeLineups(): Promise<Game[]> {
         )
         .prop("href");
 
+      //lineup__status is-confirmed
+      const confirmed = gameElement
+        .find(`.lineup__list.${classText} > .lineup__status`)
+        .hasClass("is-confirmed");
+
       const pitcherId = pitcherLink?.split("-").at(-1);
       const team: Team = {
         name: gameElement.find(`.lineup__team.${classText}`).text().trim(),
         players: [],
+        lineupConfirmed: confirmed,
         startingPitcher: gameElement
           .find(
             `.lineup__list.${classText} > .lineup__player-highlight > .lineup__player-highlight-name > a`,
@@ -118,9 +126,14 @@ async function scrapeLineups(): Promise<Game[]> {
         .replace(" ET", "");
       const today = dayjs().format("YYYY-MM-DD");
       const game = {
+        id: $(element)
+          .find("div.lineup__box > a")
+          .attr("href")
+          ?.split("/")
+          .at(-1),
         homeTeam: getTeamAndPlayers(false, gameElement),
         awayTeam: getTeamAndPlayers(true, gameElement),
-        date: dayjs(`${today} ${timeString}`, "HH:mm A YYYY-MM-DD").valueOf(),
+        date: dayjs(`${today} ${timeString}`, "YYYY-MM-DD h:mm A").valueOf(),
       };
       if (game.homeTeam && game.awayTeam) {
         games.push(game as Game);
@@ -137,180 +150,193 @@ async function scrapeLineups(): Promise<Game[]> {
 async function main() {
   const games = await scrapeLineups();
   for (const game of games) {
-    await db.transaction(async (tx) => {
-      await tx
-        .insert(teamsTable)
-        .values([{ name: game.homeTeam.name }, { name: game.awayTeam.name }])
-        .onConflictDoNothing();
-      const [homeTeam] = await tx
-        .select()
-        .from(teamsTable)
-        .where(eq(teamsTable.name, game.homeTeam.name))
-        .limit(1);
+    try {
+      await db.transaction(async (tx) => {
+        await tx
+          .insert(teamsTable)
+          .values([{ name: game.homeTeam.name }, { name: game.awayTeam.name }])
+          .onConflictDoNothing();
+        const [homeTeam] = await tx
+          .select()
+          .from(teamsTable)
+          .where(eq(teamsTable.name, game.homeTeam.name))
+          .limit(1);
 
-      if (!homeTeam) {
-        console.error(`Home team ${game.homeTeam.name} not found`);
-        return;
-      }
+        if (!homeTeam) {
+          console.error(`Home team ${game.homeTeam.name} not found`);
+          return;
+        }
 
-      const [awayTeam] = await tx
-        .select()
-        .from(teamsTable)
-        .where(eq(teamsTable.name, game.awayTeam.name))
-        .limit(1);
+        const [awayTeam] = await tx
+          .select()
+          .from(teamsTable)
+          .where(eq(teamsTable.name, game.awayTeam.name))
+          .limit(1);
 
-      if (!awayTeam) {
-        console.error(`Away team ${game.awayTeam.name} not found`);
-        return;
-      }
+        if (!awayTeam) {
+          console.error(`Away team ${game.awayTeam.name} not found`);
+          return;
+        }
 
-      await tx
-        .insert(gamesTable)
-        .values([
-          {
-            date: new Date(game.date),
-            homeTeamId: homeTeam.id,
-            awayTeamId: awayTeam.id,
-          },
-        ])
-        .onConflictDoNothing();
+        await tx
+          .insert(gamesTable)
+          .values([
+            {
+              id: game.id,
+              date: new Date(game.date),
+              homeTeamId: homeTeam.id,
+              awayTeamId: awayTeam.id,
+              homeLineupConfirmed: game.homeTeam.lineupConfirmed,
+              awayLineupConfirmed: game.awayTeam.lineupConfirmed,
+            },
+          ])
+          .onConflictDoUpdate({
+            target: [gamesTable.id],
+            set: {
+              homeLineupConfirmed: sql`EXCLUDED."home_lineup_confirmed"`,
+              awayLineupConfirmed: sql`EXCLUDED."away_lineup_confirmed"`,
+            },
+          });
 
-      const [gameDb] = await tx
-        .select()
-        .from(gamesTable)
-        .where(
-          and(
-            eq(gamesTable.homeTeamId, homeTeam.id),
-            eq(gamesTable.awayTeamId, awayTeam.id),
-            eq(gamesTable.date, new Date(game.date)),
-          ),
-        )
-        .limit(1);
-      const [homePitcher, awayPitcher] = await tx
-        .insert(pitchersTable)
-        .values([
-          {
-            name: game.homeTeam.startingPitcher,
-            handedness: game.homeTeam.startingPitcherThrows,
-            teamId: homeTeam.id,
-            id: game.homeTeam.pitcherId,
-            url: game.homeTeam.pitcherLink,
-          },
-          {
-            name: game.awayTeam.startingPitcher,
-            handedness: game.awayTeam.startingPitcherThrows,
-            teamId: awayTeam.id,
-            id: game.awayTeam.pitcherId,
-            url: game.awayTeam.pitcherLink,
-          },
-        ])
-        .onConflictDoUpdate({
-          target: pitchersTable.id,
-          set: {
-            name: sql`EXCLUDED.name`,
-            handedness: sql`EXCLUDED.handedness`,
-            teamId: sql`EXCLUDED."teamId"`,
-            url: sql`EXCLUDED."url"`,
-          },
-        })
-        .returning();
-      await tx
-        .insert(pitchersGameInfoTable)
-        .values([
-          {
-            era: game.homeTeam.startingPitcherEra,
-            winLoss: game.homeTeam.startingPitcherWinLoss,
-            pitcherId: homePitcher.id,
-            gameId: gameDb.id,
-          },
-          {
-            era: game.awayTeam.startingPitcherEra,
-            winLoss: game.awayTeam.startingPitcherWinLoss,
-            pitcherId: awayPitcher.id,
-            gameId: gameDb.id,
-          },
-        ])
-        .onConflictDoUpdate({
-          target: [
-            pitchersGameInfoTable.pitcherId,
-            pitchersGameInfoTable.gameId,
-          ],
-          set: {
-            era: sql`EXCLUDED.era`,
-            winLoss: sql`EXCLUDED."winLoss"`,
-          },
-        });
-      await tx
-        .insert(batterTable)
-        .values(
+        const [gameDb] = await tx
+          .select()
+          .from(gamesTable)
+          .where(
+            and(
+              eq(gamesTable.homeTeamId, homeTeam.id),
+              eq(gamesTable.awayTeamId, awayTeam.id),
+              eq(gamesTable.date, new Date(game.date)),
+            ),
+          )
+          .limit(1);
+        const [homePitcher, awayPitcher] = await tx
+          .insert(pitchersTable)
+          .values([
+            {
+              name: game.homeTeam.startingPitcher,
+              handedness: game.homeTeam.startingPitcherThrows,
+              teamId: homeTeam.id,
+              id: game.homeTeam.pitcherId,
+              url: game.homeTeam.pitcherLink,
+            },
+            {
+              name: game.awayTeam.startingPitcher,
+              handedness: game.awayTeam.startingPitcherThrows,
+              teamId: awayTeam.id,
+              id: game.awayTeam.pitcherId,
+              url: game.awayTeam.pitcherLink,
+            },
+          ])
+          .onConflictDoUpdate({
+            target: pitchersTable.id,
+            set: {
+              name: sql`EXCLUDED.name`,
+              handedness: sql`EXCLUDED.handedness`,
+              teamId: sql`EXCLUDED."teamId"`,
+              url: sql`EXCLUDED."url"`,
+            },
+          })
+          .returning();
+        await tx
+          .insert(pitchersGameInfoTable)
+          .values([
+            {
+              era: game.homeTeam.startingPitcherEra,
+              winLoss: game.homeTeam.startingPitcherWinLoss,
+              pitcherId: homePitcher.id,
+              gameId: gameDb.id,
+            },
+            {
+              era: game.awayTeam.startingPitcherEra,
+              winLoss: game.awayTeam.startingPitcherWinLoss,
+              pitcherId: awayPitcher.id,
+              gameId: gameDb.id,
+            },
+          ])
+          .onConflictDoUpdate({
+            target: [
+              pitchersGameInfoTable.pitcherId,
+              pitchersGameInfoTable.gameId,
+            ],
+            set: {
+              era: sql`EXCLUDED.era`,
+              winLoss: sql`EXCLUDED."winLoss"`,
+            },
+          });
+        await tx
+          .insert(batterTable)
+          .values(
+            game.homeTeam.players.map((player) => {
+              return {
+                id: player.id,
+                name: player.name,
+                teamId: homeTeam.id,
+                handedness: player.handed,
+                url: player.url,
+              };
+            }),
+          )
+          .onConflictDoUpdate({
+            target: batterTable.id,
+            set: {
+              name: sql`EXCLUDED.name`,
+              handedness: sql`EXCLUDED.handedness`,
+              teamId: sql`EXCLUDED."teamId"`,
+              url: sql`EXCLUDED."url"`,
+            },
+          })
+          .returning();
+        await tx
+          .insert(batterTable)
+          .values(
+            game.awayTeam.players.map((player) => {
+              return {
+                id: player.id,
+                name: player.name,
+                teamId: awayTeam.id,
+                handedness: player.handed,
+                url: player.url,
+              };
+            }),
+          )
+          .onConflictDoUpdate({
+            target: batterTable.id,
+            set: {
+              name: sql`EXCLUDED.name`,
+              handedness: sql`EXCLUDED.handedness`,
+              teamId: sql`EXCLUDED."teamId"`,
+              url: sql`EXCLUDED."url"`,
+            },
+          })
+          .returning();
+
+        await tx
+          .delete(battersGameInfoTable)
+          .where(eq(battersGameInfoTable.gameId, gameDb.id));
+        await tx.insert(battersGameInfoTable).values(
           game.homeTeam.players.map((player) => {
             return {
-              id: player.id,
-              name: player.name,
-              teamId: homeTeam.id,
-              handedness: player.handed,
-              url: player.url,
+              batterId: player.id,
+              gameId: gameDb.id,
+              battingOrder: player.battingOrder,
+              position: player.position,
             };
           }),
-        )
-        .onConflictDoUpdate({
-          target: batterTable.id,
-          set: {
-            name: sql`EXCLUDED.name`,
-            handedness: sql`EXCLUDED.handedness`,
-            teamId: sql`EXCLUDED."teamId"`,
-            url: sql`EXCLUDED."url"`,
-          },
-        })
-        .returning();
-      await tx
-        .insert(batterTable)
-        .values(
+        );
+        await tx.insert(battersGameInfoTable).values(
           game.awayTeam.players.map((player) => {
             return {
-              id: player.id,
-              name: player.name,
-              teamId: awayTeam.id,
-              handedness: player.handed,
-              url: player.url,
+              batterId: player.id,
+              gameId: gameDb.id,
+              battingOrder: player.battingOrder,
+              position: player.position,
             };
           }),
-        )
-        .onConflictDoUpdate({
-          target: batterTable.id,
-          set: {
-            name: sql`EXCLUDED.name`,
-            handedness: sql`EXCLUDED.handedness`,
-            teamId: sql`EXCLUDED."teamId"`,
-            url: sql`EXCLUDED."url"`,
-          },
-        })
-        .returning();
-
-      await tx
-        .delete(battersGameInfoTable)
-        .where(eq(battersGameInfoTable.gameId, gameDb.id));
-      await tx.insert(battersGameInfoTable).values(
-        game.homeTeam.players.map((player) => {
-          return {
-            batterId: player.id,
-            gameId: gameDb.id,
-            battingOrder: player.battingOrder,
-            position: player.position,
-          };
-        }),
-      );
-      await tx.insert(battersGameInfoTable).values(
-        game.awayTeam.players.map((player) => {
-          return {
-            batterId: player.id,
-            gameId: gameDb.id,
-            battingOrder: player.battingOrder,
-            position: player.position,
-          };
-        }),
-      );
-    });
+        );
+      });
+    } catch (err) {
+      console.error(err);
+    }
   }
 }
 

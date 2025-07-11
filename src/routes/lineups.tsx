@@ -10,8 +10,8 @@ const lineupsLoader = createServerFn({ method: "GET" }).handler(async () => {
   const games = await db.query.gamesTable.findMany({
     where: between(
       gamesTable.date,
-      dayjs().startOf("day").toDate(),
-      dayjs().endOf("day").toDate(),
+      dayjs().tz("America/New_York").startOf("day").toDate(),
+      dayjs().tz("America/New_York").endOf("day").toDate(),
     ),
     with: {
       homeTeam: true,
@@ -29,6 +29,7 @@ export const Route = createFileRoute("/lineups")({
 
 function RouteComponent() {
   const games = Route.useLoaderData();
+  console.log("games", games);
   return (
     <div className="p-6">
       <h2 className="text-3xl font-bold mb-4 text-white">
