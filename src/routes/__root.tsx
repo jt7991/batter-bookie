@@ -1,10 +1,9 @@
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { QueryClient } from "@tanstack/react-query";
 import {
   HeadContent,
   Link,
   Outlet,
   Scripts,
-  createRootRoute,
   createRootRouteWithContext,
 } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
@@ -82,7 +81,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
     className: "font-bold bg-slate-800",
   };
   return (
-    <html>
+    <html className="dark">
       <head>
         <HeadContent />
       </head>

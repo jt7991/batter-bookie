@@ -5,6 +5,7 @@ import { and, eq } from "drizzle-orm";
 import z from "zod";
 import { db } from "~/server/db";
 import {
+  batterOddsTable,
   battersGameInfoTable,
   batterTable,
   pitchersGameInfoTable,
@@ -16,9 +17,17 @@ const getTeamLineupForGame = createServerFn({ method: "GET" })
   .validator(zodValidator(z.object({ teamId: z.string(), gameId: z.string() })))
   .handler(async ({ data }) => {
     const bgInfo = await db
-      .select({ batter: batterTable, gameInfo: battersGameInfoTable })
+      .select({
+        batter: batterTable,
+        gameInfo: battersGameInfoTable,
+        odds: batterOddsTable,
+      })
       .from(battersGameInfoTable)
       .innerJoin(batterTable, eq(battersGameInfoTable.batterId, batterTable.id))
+      .leftJoin(
+        batterOddsTable,
+        eq(batterOddsTable.batterGameInfoId, battersGameInfoTable.id),
+      )
       .where(
         and(
           eq(battersGameInfoTable.gameId, data.gameId),
@@ -81,15 +90,31 @@ export const LineupSection = ({
           <p className="text-sm">W-L: {startingPitcher?.gameInfo.winLoss}</p>
         </div>
       </div>
-      {teamLineup.map((item, index) =>
-        item ? (
-          <BatterRow
-            batter={item.batter}
-            key={item.batter.id}
-            gameInfo={item.gameInfo}
-          />
-        ) : null,
-      )}
+      <table className="w-full border-separate border-spacing-y-4">
+        <thead>
+          <tr className="border-b-2 border-slate-400 text-sm text-left">
+            <th className="w-24"></th>
+            <th></th>
+            <th className="w-10">H</th>
+            <th className="w-12">Pos</th>
+            <th>1+ Hits</th>
+            <th>2+ Hits</th>
+            <th>3+ Hits</th>
+          </tr>
+        </thead>
+        <tbody>
+          {teamLineup.map((item, index) =>
+            item ? (
+              <BatterRow
+                batter={item.batter}
+                key={item.batter.id}
+                gameInfo={item.gameInfo}
+                odds={item.odds}
+              />
+            ) : null,
+          )}
+        </tbody>
+      </table>
     </div>
   );
 };
