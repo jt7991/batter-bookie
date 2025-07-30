@@ -51,7 +51,7 @@ export function BatterRow({
         <td className="w-10 border-b-2 border-slate-400 p-1 text-center">
           {batter.handedness}
         </td>
-        <td className="w-12 border-b-2 border-slate-400 p-1 text-center">
+        <td className="w-12 border-b-2 border-slate-400 p-1 text-center hidden sm:table-cell">
           {gameInfo.position}
         </td>
         <td className="border-b-2 border-slate-400 p-1 content-center text-center">

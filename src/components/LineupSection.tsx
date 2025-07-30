@@ -96,7 +96,7 @@ export const LineupSection = ({
             <th className="w-24 text-center"></th>
             <th></th>
             <th className="w-10 text-center">H</th>
-            <th className="w-12 text-center">Pos</th>
+            <th className="w-12 text-center hidden sm:table-cell">Pos</th>
             <th className="text-center">1+ Hits</th>
             <th className="text-center">2+ Hits</th>
             <th className="text-center">3+ Hits</th>
