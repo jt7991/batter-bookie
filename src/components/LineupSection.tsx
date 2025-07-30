@@ -93,13 +93,13 @@ export const LineupSection = ({
       <table className="w-full border-separate border-spacing-y-4">
         <thead>
           <tr className="border-b-2 border-slate-400 text-sm text-left">
-            <th className="w-24"></th>
+            <th className="w-24 text-center"></th>
             <th></th>
-            <th className="w-10">H</th>
-            <th className="w-12">Pos</th>
-            <th>1+ Hits</th>
-            <th>2+ Hits</th>
-            <th>3+ Hits</th>
+            <th className="w-10 text-center">H</th>
+            <th className="w-12 text-center">Pos</th>
+            <th className="text-center">1+ Hits</th>
+            <th className="text-center">2+ Hits</th>
+            <th className="text-center">3+ Hits</th>
           </tr>
         </thead>
         <tbody>

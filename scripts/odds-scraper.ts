@@ -4,6 +4,7 @@ import axios from "axios";
 import dayjs from "dayjs";
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
+import { sql } from "drizzle-orm";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -71,12 +72,23 @@ const main = async () => {
           const twoHitOdds = player.markets.find((m) => m.value === 2)?.odds;
           const threeHitOdds = player.markets.find((m) => m.value === 3)?.odds;
 
-          await db.insert(batterOddsTable).values({
-            batterGameInfoId: batterGameInfo.id,
-            oneHitOdds,
-            twoHitOdds,
-            threeHitOdds,
-          });
+          await db
+            .insert(batterOddsTable)
+            .values({
+              id: batterGameInfo.id,
+              batterGameInfoId: batterGameInfo.id,
+              oneHitOdds,
+              twoHitOdds,
+              threeHitOdds,
+            })
+            .onConflictDoUpdate({
+              target: batterOddsTable.id,
+              set: {
+                oneHitOdds: sql`EXCLUDED."oneHitOdds"`,
+                twoHitOdds: sql`EXCLUDED."twoHitOdds"`,
+                threeHitOdds: sql`EXCLUDED."threeHitOdds"`,
+              },
+            });
         }
       }
     }

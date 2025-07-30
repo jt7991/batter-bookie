@@ -7,9 +7,15 @@ export function BatterRow({
   gameInfo,
   odds,
 }: {
-  batter: { name: string; handedness: string; url: string };
-  gameInfo: { position: string; battingOrder: number };
+  batter: { name: string; handedness: string; url: string; id: string };
+  gameInfo: {
+    position: string;
+    battingOrder: number;
+    gameId: string | null;
+    id: string;
+  };
   odds: {
+    id: string;
     oneHitOdds: string | null;
     twoHitOdds: string | null;
     threeHitOdds: string | null;
@@ -28,28 +34,46 @@ export function BatterRow({
   return (
     <>
       <tr>
-        <td className="w-24 border-b-2 border-slate-400">
+        <td className="border-b-2 pr-2 border-slate-400">
           <div className="flex items-center gap-2">
             <button
               onClick={() => setIsCollapsed(!isCollapsed)}
-              className="flex flex-row gap-1 text-sm items-center"
+              className="flex flex-row text-sm items-center"
             >
               {isCollapsed ? <ChevronDownIcon /> : <ChevronUpIcon />}
             </button>
             {gameInfo.battingOrder + 1}
           </div>
         </td>
-        <td className="border-b-2 border-slate-400">{batter.name}</td>
-        <td className="w-10 border-b-2 border-slate-400">{batter.handedness}</td>
-        <td className="w-12 border-b-2 border-slate-400">{gameInfo.position}</td>
-        <td className="border-b-2 border-slate-400">
-          <OddsButton value={odds?.oneHitOdds} />
+        <td className="border-b-2 min-w-12 truncate max-w-20 sm:max-w-full text-wrap border-slate-400 ">
+          {batter.name}
         </td>
-        <td className="border-b-2 border-slate-400">
-          <OddsButton value={odds?.twoHitOdds} />
+        <td className="w-10 border-b-2 border-slate-400 p-1 text-center">
+          {batter.handedness}
         </td>
-        <td className="border-b-2 border-slate-400">
-          <OddsButton value={odds?.threeHitOdds} />
+        <td className="w-12 border-b-2 border-slate-400 p-1 text-center">
+          {gameInfo.position}
+        </td>
+        <td className="border-b-2 border-slate-400 p-1 content-center text-center">
+          <OddsButton
+            value={odds?.oneHitOdds}
+            gameInfoId={gameInfo.id}
+            type="oneHit"
+          />
+        </td>
+        <td className="border-b-2 border-slate-400 p-1 text-center">
+          <OddsButton
+            value={odds?.twoHitOdds}
+            gameInfoId={gameInfo.id}
+            type="twoHit"
+          />
+        </td>
+        <td className="border-b-2 border-slate-400 p-1 text-center">
+          <OddsButton
+            value={odds?.threeHitOdds}
+            gameInfoId={gameInfo.id}
+            type="threeHit"
+          />
         </td>
       </tr>
       {(!isCollapsed || iframeMountedOnce) && (

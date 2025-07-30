@@ -7,7 +7,6 @@ import {
   createRootRouteWithContext,
 } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
-import { CalendarDays } from "lucide-react";
 import * as React from "react";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
@@ -77,40 +76,14 @@ function RootComponent() {
 }
 
 function RootDocument({ children }: { children: React.ReactNode }) {
-  const activeProps = {
-    className: "font-bold bg-slate-800",
-  };
   return (
     <html className="dark">
       <head>
         <HeadContent />
       </head>
       <body className="h-full min-h-screen bg-slate-800 flex flex-row">
-        <aside className="p-2 flex-col gap-2 text-lg h-screen bg-slate-900 min-w-60 sm:flex hidden">
-          <Link
-            to="/"
-            activeProps={activeProps}
-            activeOptions={{ exact: true }}
-            className="text-slate-50 m-2"
-          >
-            <div className="flex flex-row h-6 gap-5 text-center">
-              <img src="/favicon.svg" />
-              Batter Bookie
-            </div>
-          </Link>
-          <Link
-            to="/lineups"
-            activeProps={activeProps}
-            activeOptions={{ exact: true }}
-            className="text-slate-50 m-2 rounded-md p-1 flex flex-row gap-2"
-          >
-            <CalendarDays className="p-1" />
-            <div className="flex flex-row h-6 gap-5 text-center ">Lineups</div>
-          </Link>
-        </aside>
         <hr />
         <div className="overflow-y-auto max-h-screen w-full">{children}</div>
-        <TanStackRouterDevtools position="bottom-right" />
         <Scripts />
       </body>
     </html>

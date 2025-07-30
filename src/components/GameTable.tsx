@@ -25,7 +25,7 @@ export const GameCard = ({
           {dayjs(game.date).format("h:mm A z")}
         </h2>
       </div>
-      <div className="grid xl:grid-cols-2 grid-cols-1 gap-4 p-4">
+      <div className="grid xl:grid-cols-2 grid-cols-1 gap-4 p-2">
         <div>
           <div
             className="p-4 rounded-t-lg "
@@ -42,7 +42,13 @@ export const GameCard = ({
               }`}
             >
               <span>{game.awayTeam.name}</span>
-              <span title={game.awayLineupConfirmed ? "Away lineup confirmed" : "Away lineup not confirmed"}>
+              <span
+                title={
+                  game.awayLineupConfirmed
+                    ? "Away lineup confirmed"
+                    : "Away lineup not confirmed"
+                }
+              >
                 {game.awayLineupConfirmed ? "✅" : "❌"}
               </span>
             </h3>
@@ -67,7 +73,13 @@ export const GameCard = ({
               }`}
             >
               <span>{game.homeTeam.name}</span>
-              <span title={game.homeLineupConfirmed ? "Home lineup confirmed" : "Home lineup not confirmed"}>
+              <span
+                title={
+                  game.homeLineupConfirmed
+                    ? "Home lineup confirmed"
+                    : "Home lineup not confirmed"
+                }
+              >
                 {game.homeLineupConfirmed ? "✅" : "❌"}
               </span>
             </h3>

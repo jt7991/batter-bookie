@@ -6,6 +6,7 @@ import { between, asc } from "drizzle-orm";
 import { db } from "~/server/db";
 import { gamesTable } from "~/server/db/schema";
 import { OddsFormatToggle } from "~/components/OddsFormatToggle";
+import { BetSheet } from "~/components/BetSheet";
 
 const lineupsLoader = createServerFn({ method: "GET" }).handler(async () => {
   console.log("fetching games");
@@ -31,20 +32,22 @@ export const Route = createFileRoute("/lineups")({
 
 function RouteComponent() {
   const games = Route.useLoaderData();
-  console.log("games", games);
   return (
-    <div className="p-6">
-      <div className="flex flex-row justify-between">
-        <h2 className="text-3xl font-bold mb-4 text-white">
-          {`Today\'s Games (${dayjs().format("MM/DD/YYYY")})`}
-        </h2>
-        <OddsFormatToggle />
+    <>
+      <div className="p-4">
+        <div className="flex flex-row justify-between">
+          <h2 className="text-3xl font-bold mb-4 text-white">
+            {`Today\'s Games (${dayjs().format("MM/DD/YYYY")})`}
+          </h2>
+          <OddsFormatToggle />
+        </div>
+        <div className="grid grid-cols-1 gap-4 mb-4 text-white">
+          {games.map((game) => (
+            <GameCard game={game} />
+          ))}
+        </div>
       </div>
-      <div className="grid grid-cols-1 gap-4 mb-4 text-white">
-        {games.map((game) => (
-          <GameCard game={game} />
-        ))}
-      </div>
-    </div>
+      <BetSheet />
+    </>
   );
 }
