@@ -1,25 +1,36 @@
 import {
   pgTable,
-  unique,
   uuid,
   varchar,
   smallint,
   text,
+  unique,
 } from "drizzle-orm/pg-core";
 import { pitchersTable } from "./pitchers";
 import { gamesTable } from "./games";
 import { relations, sql } from "drizzle-orm";
 import { batterTable } from "./batters";
 
-export const battersGameInfoTable = pgTable("batterGameInfo", {
-  id: uuid()
-    .primaryKey()
-    .default(sql`gen_random_uuid()`),
-  position: varchar({ length: 255 }).notNull(),
-  battingOrder: smallint().notNull(),
-  batterId: varchar({ length: 255 }).references(() => batterTable.id),
-  gameId: text().references(() => gamesTable.id),
-});
+export const battersGameInfoTable = pgTable(
+  "batterGameInfo",
+  {
+    id: uuid()
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    position: varchar({ length: 255 }).notNull(),
+    battingOrder: smallint().notNull(),
+    batterId: varchar({ length: 255 }).references(() => batterTable.id),
+    gameId: text().references(() => gamesTable.id),
+  },
+  (table) => {
+    return {
+      batterGameUnique: unique("batterGameUnique").on(
+        table.batterId,
+        table.gameId,
+      ),
+    };
+  },
+);
 
 export const battersGameInfoRelations = relations(
   battersGameInfoTable,

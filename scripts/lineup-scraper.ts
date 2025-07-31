@@ -1,7 +1,9 @@
 import axios from "axios";
 import * as cheerio from "cheerio";
 import dayjs from "dayjs";
-import { and, eq, sql } from "drizzle-orm";
+import timezone from "dayjs/plugin/timezone.js";
+import utc from "dayjs/plugin/utc.js";
+import { and, eq, notInArray, sql } from "drizzle-orm";
 import { db } from "~/server/db";
 import { batterTable } from "~/server/db/schema/batters";
 import { battersGameInfoTable } from "~/server/db/schema/battersGameInfo";
@@ -9,6 +11,9 @@ import { gamesTable } from "~/server/db/schema/games";
 import { pitchersTable } from "~/server/db/schema/pitchers";
 import { pitchersGameInfoTable } from "~/server/db/schema/pitchersGameInfo";
 import { teamsTable } from "~/server/db/schema/teams";
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 const ROTOWIRE_URL = "https://www.rotowire.com/baseball/daily-lineups.php";
 
@@ -124,7 +129,23 @@ async function scrapeLineups(): Promise<Game[]> {
         .text()
         .trim()
         .replace(" ET", "");
+
+      const timeRegex = /^\d{1,2}:\d{2} (AM|PM)$/;
+      if (!timeRegex.test(timeString)) {
+        return;
+      }
+
       const today = dayjs().format("YYYY-MM-DD");
+      const gameDate = dayjs.tz(
+        `${today} ${timeString}`,
+        "YYYY-MM-DD h:mm A",
+        "America/New_York",
+      );
+
+      if (!gameDate.isValid()) {
+        console.error(`Failed to parse date for timeString: "${timeString}"`);
+        return;
+      }
       const game = {
         id: $(element)
           .find("div.lineup__box > a")
@@ -133,7 +154,7 @@ async function scrapeLineups(): Promise<Game[]> {
           .at(-1),
         homeTeam: getTeamAndPlayers(false, gameElement),
         awayTeam: getTeamAndPlayers(true, gameElement),
-        date: dayjs(`${today} ${timeString}`, "YYYY-MM-DD h:mm A").valueOf(),
+        date: gameDate.valueOf(),
       };
       if (game.homeTeam && game.awayTeam) {
         games.push(game as Game);
@@ -193,6 +214,7 @@ async function main() {
           .onConflictDoUpdate({
             target: [gamesTable.id],
             set: {
+              date: sql`EXCLUDED."date"`,
               homeLineupConfirmed: sql`EXCLUDED."home_lineup_confirmed"`,
               awayLineupConfirmed: sql`EXCLUDED."away_lineup_confirmed"`,
             },
@@ -237,6 +259,7 @@ async function main() {
             },
           })
           .returning();
+
         await tx
           .insert(pitchersGameInfoTable)
           .values([
@@ -310,29 +333,43 @@ async function main() {
           })
           .returning();
 
+        const allPlayers = [
+          ...game.homeTeam.players,
+          ...game.awayTeam.players,
+        ];
         await tx
           .delete(battersGameInfoTable)
-          .where(eq(battersGameInfoTable.gameId, gameDb.id));
-        await tx.insert(battersGameInfoTable).values(
-          game.homeTeam.players.map((player) => {
-            return {
-              batterId: player.id,
-              gameId: gameDb.id,
-              battingOrder: player.battingOrder,
-              position: player.position,
-            };
-          }),
-        );
-        await tx.insert(battersGameInfoTable).values(
-          game.awayTeam.players.map((player) => {
-            return {
-              batterId: player.id,
-              gameId: gameDb.id,
-              battingOrder: player.battingOrder,
-              position: player.position,
-            };
-          }),
-        );
+          .where(
+            and(
+              eq(battersGameInfoTable.gameId, gameDb.id),
+              notInArray(
+                battersGameInfoTable.batterId,
+                allPlayers.map((p) => p.id),
+              ),
+            ),
+          );
+        await tx
+          .insert(battersGameInfoTable)
+          .values(
+            allPlayers.map((player) => {
+              return {
+                batterId: player.id,
+                gameId: gameDb.id,
+                battingOrder: player.battingOrder,
+                position: player.position,
+              };
+            }),
+          )
+          .onConflictDoUpdate({
+            target: [
+              battersGameInfoTable.batterId,
+              battersGameInfoTable.gameId,
+            ],
+            set: {
+              battingOrder: sql`EXCLUDED."battingOrder"`,
+              position: sql`EXCLUDED.position`,
+            },
+          });
       });
     } catch (err) {
       console.error(err);
