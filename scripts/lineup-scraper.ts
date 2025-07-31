@@ -136,7 +136,7 @@ async function scrapeLineups(): Promise<Game[]> {
         return;
       }
 
-      const today = dayjs().format("YYYY-MM-DD");
+      const today = dayjs.tz("America/New_York").format("YYYY-MM-DD");
       const gameDate = dayjs(`${today} ${timeString}`, "YYYY-MM-DD h:mm A");
 
       if (!gameDate.isValid()) {
