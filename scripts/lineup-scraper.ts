@@ -135,7 +135,7 @@ async function scrapeLineups(): Promise<Game[]> {
         return;
       }
 
-      const today = dayjs().format("YYYY-MM-DD");
+      const today = dayjs().tz("America/New_York").format("YYYY-MM-DD");
       const gameDate = dayjs.tz(
         `${today} ${timeString}`,
         "YYYY-MM-DD h:mm A",
@@ -333,21 +333,16 @@ async function main() {
           })
           .returning();
 
-        const allPlayers = [
-          ...game.homeTeam.players,
-          ...game.awayTeam.players,
-        ];
-        await tx
-          .delete(battersGameInfoTable)
-          .where(
-            and(
-              eq(battersGameInfoTable.gameId, gameDb.id),
-              notInArray(
-                battersGameInfoTable.batterId,
-                allPlayers.map((p) => p.id),
-              ),
+        const allPlayers = [...game.homeTeam.players, ...game.awayTeam.players];
+        await tx.delete(battersGameInfoTable).where(
+          and(
+            eq(battersGameInfoTable.gameId, gameDb.id),
+            notInArray(
+              battersGameInfoTable.batterId,
+              allPlayers.map((p) => p.id),
             ),
-          );
+          ),
+        );
         await tx
           .insert(battersGameInfoTable)
           .values(

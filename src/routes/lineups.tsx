@@ -22,6 +22,7 @@ const lineupsLoader = createServerFn({ method: "GET" }).handler(async () => {
     },
     orderBy: asc(gamesTable.date),
   });
+  console.log(games);
   return games;
 });
 
