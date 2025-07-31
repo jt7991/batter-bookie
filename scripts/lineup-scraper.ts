@@ -137,10 +137,12 @@ async function scrapeLineups(): Promise<Game[]> {
 
       const today = dayjs().tz("America/New_York").format("YYYY-MM-DD");
       console.log(today, timeString);
-      const gameDate = dayjs(`${today} ${timeString}`, "YYYY-MM-DD h:mm A").tz(
+      const gameDate = dayjs.tz(
+        `${today} ${timeString}`,
+        "YYYY-MM-DD h:mm A",
         "America/New_York",
       );
-      console.log(gameDate.format("YYYY-MM-DD h:mm A"));
+      console.log(gameDate.format("YYYY-MM-DD h:mm A Z"));
 
       if (!gameDate.isValid()) {
         console.error(`Failed to parse date for timeString: "${timeString}"`);
@@ -373,4 +375,3 @@ async function main() {
 }
 
 main();
-
