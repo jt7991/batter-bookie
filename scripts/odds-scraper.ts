@@ -84,9 +84,9 @@ const main = async () => {
             .onConflictDoUpdate({
               target: batterOddsTable.id,
               set: {
-                oneHitOdds: sql`EXCLUDED."oneHitOdds"`,
-                twoHitOdds: sql`EXCLUDED."twoHitOdds"`,
-                threeHitOdds: sql`EXCLUDED."threeHitOdds"`,
+                oneHitOdds: sql`EXCLUDED."one_hit_odds"`,
+                twoHitOdds: sql`EXCLUDED."two_hit_odds"`,
+                threeHitOdds: sql`EXCLUDED."three_hit_odds"`,
               },
             });
         }
