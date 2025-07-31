@@ -44,21 +44,23 @@ const getStartingPitcher = createServerFn({ method: "GET" })
   .validator(zodValidator(z.object({ teamId: z.string(), gameId: z.string() })))
   .handler(async ({ data }) => {
     return (
-      await db
-        .select({ pitcher: pitchersTable, gameInfo: pitchersGameInfoTable })
-        .from(pitchersGameInfoTable)
-        .innerJoin(
-          pitchersTable,
-          eq(pitchersGameInfoTable.pitcherId, pitchersTable.id),
-        )
-        .where(
-          and(
-            eq(pitchersGameInfoTable.gameId, data.gameId),
-            eq(pitchersTable.teamId, data.teamId),
-          ),
-        )
-        .limit(1)
-    ).at(0);
+      (
+        await db
+          .select({ pitcher: pitchersTable, gameInfo: pitchersGameInfoTable })
+          .from(pitchersGameInfoTable)
+          .innerJoin(
+            pitchersTable,
+            eq(pitchersGameInfoTable.pitcherId, pitchersTable.id),
+          )
+          .where(
+            and(
+              eq(pitchersGameInfoTable.gameId, data.gameId),
+              eq(pitchersTable.teamId, data.teamId),
+            ),
+          )
+          .limit(1)
+      ).at(0) || null
+    );
   });
 
 export const LineupSection = ({

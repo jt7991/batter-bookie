@@ -132,14 +132,16 @@ async function scrapeLineups(): Promise<Game[]> {
 
       const timeRegex = /^\d{1,2}:\d{2} (AM|PM)$/;
       if (!timeRegex.test(timeString)) {
+        console.log("times are fucked", timeString);
         return;
       }
 
       const today = dayjs().tz("America/New_York").format("YYYY-MM-DD");
+      const offset = dayjs().tz("America/New_York").format("Z");
       console.log(today, timeString);
-      const gameDate = dayjs.tz(
-        `${today} ${timeString}`,
-        "YYYY-MM-DD h:mm A",
+      const gameDate = dayjs(
+        `${today} ${timeString} ${offset}`,
+        "YYYY-MM-DD h:mm A Z",
         "America/New_York",
       );
       console.log(gameDate.format("YYYY-MM-DD h:mm A Z"));

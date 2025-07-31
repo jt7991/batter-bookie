@@ -65,6 +65,7 @@ const main = async () => {
         });
         if (!batterGameInfo) {
           console.error("could not find battergameinfo");
+          console.log(batter.id, dbGame.id);
         }
 
         if (batterGameInfo) {
