@@ -14,7 +14,6 @@ import { teamsTable } from "~/server/db/schema/teams";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
-dayjs.tz.setDefault("America/New_York");
 
 const ROTOWIRE_URL = "https://www.rotowire.com/baseball/daily-lineups.php";
 
@@ -137,8 +136,11 @@ async function scrapeLineups(): Promise<Game[]> {
       }
 
       const today = dayjs().tz("America/New_York").format("YYYY-MM-DD");
-      const gameDate = dayjs(`${today} ${timeString}`, "YYYY-MM-DD h:mm A");
-      console.log(gameDate.toISOString());
+      console.log(today, timeString);
+      const gameDate = dayjs(`${today} ${timeString}`, "YYYY-MM-DD h:mm A").tz(
+        "America/New_York",
+      );
+      console.log(gameDate.format("YYYY-MM-DD h:mm A"));
 
       if (!gameDate.isValid()) {
         console.error(`Failed to parse date for timeString: "${timeString}"`);
@@ -371,3 +373,4 @@ async function main() {
 }
 
 main();
+

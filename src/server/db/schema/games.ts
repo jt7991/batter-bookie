@@ -12,7 +12,7 @@ import { relations } from "drizzle-orm";
 
 export const gamesTable = pgTable("games", {
   id: text().primaryKey(),
-  date: timestamp("date").notNull(),
+  date: timestamp("date", { withTimezone: true }).notNull(),
   homeTeamId: uuid("home_team_id")
     .references(() => teamsTable.id)
     .notNull(),
