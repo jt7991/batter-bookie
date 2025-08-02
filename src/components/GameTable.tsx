@@ -1,7 +1,8 @@
-import { Suspense } from "react";
+import { Suspense, useState } from "react";
 import { LineupSection } from "./LineupSection";
 import { TEAM_COLORS } from "~/utils/team-colors";
 import dayjs from "dayjs";
+import { ChevronDownIcon, ChevronUpIcon } from "lucide-react";
 
 export const GameCard = ({
   game,
@@ -15,17 +16,30 @@ export const GameCard = ({
     homeLineupConfirmed: boolean;
   };
 }) => {
+  const [isCollapsed, setIsCollapsed] = useState(true);
   return (
     <div className="bg-slate-700 shadow rounded-lg">
-      <div className="mb-2 bg-slate-900 p-4 rounded-t-lg flex flex-row justify-between">
-        <h2 className="font-bold text-2xl">
-          {game.awayTeam.name} at {game.homeTeam.name}
-        </h2>
+      <div
+        className={`bg-slate-900 p-4 ${isCollapsed ? "rounded-lg" : "rounded-t-lg"} flex flex-row justify-between`}
+      >
+        <div className="flex flex-row gap-4">
+          <button
+            onClick={() => setIsCollapsed(!isCollapsed)}
+            className="flex flex-row text-sm items-center"
+          >
+            {isCollapsed ? <ChevronDownIcon /> : <ChevronUpIcon />}
+          </button>
+          <h2 className="font-bold text-2xl">
+            {game.awayTeam.name} at {game.homeTeam.name}
+          </h2>
+        </div>
         <h2 className="font-bold text-sm">
           {dayjs(game.date).format("h:mm A z")}
         </h2>
       </div>
-      <div className="grid xl:grid-cols-2 grid-cols-1 gap-4 p-2">
+      <div
+        className={`grid xl:grid-cols-2 grid-cols-1 gap-4 p-2 ${isCollapsed ? "hidden" : ""}`}
+      >
         <div>
           <div
             className="p-4 rounded-t-lg "
