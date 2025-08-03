@@ -68,7 +68,11 @@ export const GameCard = ({
             </h3>
           </div>
           <Suspense>
-            <LineupSection teamId={game.awayTeam.id} gameId={game.id} />
+            <LineupSection
+              teamId={game.awayTeam.id}
+              opposingTeamId={game.homeTeam.id}
+              gameId={game.id}
+            />
           </Suspense>
         </div>
         <div>
@@ -99,7 +103,11 @@ export const GameCard = ({
             </h3>
           </div>
           <Suspense>
-            <LineupSection teamId={game.homeTeam.id} gameId={game.id} />
+            <LineupSection
+              teamId={game.homeTeam.id}
+              opposingTeamId={game.awayTeam.id}
+              gameId={game.id}
+            />
           </Suspense>
         </div>
       </div>

@@ -12,6 +12,7 @@ import {
   pitchersTable,
 } from "~/server/db/schema";
 import { BatterRow } from "./BatterRow";
+import { StartingPitcherSection } from "./StartingPitcherSection";
 
 const getTeamLineupForGame = createServerFn({ method: "GET" })
   .validator(zodValidator(z.object({ teamId: z.string(), gameId: z.string() })))
@@ -40,33 +41,12 @@ const getTeamLineupForGame = createServerFn({ method: "GET" })
     });
   });
 
-const getStartingPitcher = createServerFn({ method: "GET" })
-  .validator(zodValidator(z.object({ teamId: z.string(), gameId: z.string() })))
-  .handler(async ({ data }) => {
-    return (
-      (
-        await db
-          .select({ pitcher: pitchersTable, gameInfo: pitchersGameInfoTable })
-          .from(pitchersGameInfoTable)
-          .innerJoin(
-            pitchersTable,
-            eq(pitchersGameInfoTable.pitcherId, pitchersTable.id),
-          )
-          .where(
-            and(
-              eq(pitchersGameInfoTable.gameId, data.gameId),
-              eq(pitchersTable.teamId, data.teamId),
-            ),
-          )
-          .limit(1)
-      ).at(0) || null
-    );
-  });
-
 export const LineupSection = ({
+  opposingTeamId,
   teamId,
   gameId,
 }: {
+  opposingTeamId: string;
   teamId: string;
   gameId: string;
 }) => {
@@ -75,24 +55,10 @@ export const LineupSection = ({
     queryFn: () => getTeamLineupForGame({ data: { teamId, gameId } }),
   });
 
-  const { data: startingPitcher } = useSuspenseQuery({
-    queryKey: ["getStartingPitcher", { teamId, gameId }],
-    queryFn: () => getStartingPitcher({ data: { teamId, gameId } }),
-  });
-
   return (
     <div>
-      <div className="m-4 p-4 rounded-md flex flex-row justify-between gap-2 border-2 bg-slate-600">
-        <p>
-          {startingPitcher?.pitcher.name} -{" "}
-          {startingPitcher?.pitcher.handedness}HP
-        </p>
-        <div className="flex flex-col ">
-          <p className="text-sm"> {startingPitcher?.gameInfo.era}</p>
-          <p className="text-sm">W-L: {startingPitcher?.gameInfo.winLoss}</p>
-        </div>
-      </div>
-      <table className="w-full border-separate border-spacing-y-4">
+      <StartingPitcherSection teamId={opposingTeamId} gameId={gameId} />
+      <table className="w-full border-separate border-spacing-y-4 mt-2">
         <thead>
           <tr className="border-b-2 border-slate-400 text-sm text-left">
             <th className="w-24 text-center"></th>
