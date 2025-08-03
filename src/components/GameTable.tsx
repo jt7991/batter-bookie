@@ -3,6 +3,7 @@ import { LineupSection } from "./LineupSection";
 import { TEAM_COLORS } from "~/utils/team-colors";
 import dayjs from "dayjs";
 import { ChevronDownIcon, ChevronUpIcon } from "lucide-react";
+import TeamLogo from "./TeamLogo";
 
 export const GameCard = ({
   game,
@@ -29,8 +30,16 @@ export const GameCard = ({
           >
             {isCollapsed ? <ChevronDownIcon /> : <ChevronUpIcon />}
           </button>
-          <h2 className="font-bold text-2xl">
-            {game.awayTeam.name} at {game.homeTeam.name}
+          <h2 className="font-bold text-2xl flex flex-row gap-4 items-center">
+            <div className="flex flex-row gap-0 items-center">
+              <TeamLogo teamId={game.awayTeam.name} />
+              {game.awayTeam.name}
+            </div>
+            at
+            <div className="flex flex-row gap-0 items-center">
+              <TeamLogo teamId={game.homeTeam.name} />
+              {game.homeTeam.name}
+            </div>
           </h2>
         </div>
         <h2 className="font-bold text-sm">
@@ -55,7 +64,12 @@ export const GameCard = ({
                   .text
               }`}
             >
-              <span>{game.awayTeam.name}</span>
+              <div
+                style={{ display: "flex", alignItems: "center", gap: "8px" }}
+              >
+                <TeamLogo teamId={game.awayTeam.name?.toLowerCase()} />
+                <span>{game.awayTeam.name}</span>
+              </div>
               <span
                 title={
                   game.awayLineupConfirmed
@@ -90,7 +104,12 @@ export const GameCard = ({
                   .text
               }`}
             >
-              <span>{game.homeTeam.name}</span>
+              <div
+                style={{ display: "flex", alignItems: "center", gap: "8px" }}
+              >
+                <TeamLogo teamId={game.homeTeam.name?.toLowerCase()} />
+                <span>{game.homeTeam.name}</span>
+              </div>
               <span
                 title={
                   game.homeLineupConfirmed
