@@ -4,6 +4,7 @@ import { TEAM_COLORS } from "~/utils/team-colors";
 import dayjs from "dayjs";
 import { ChevronDownIcon, ChevronUpIcon } from "lucide-react";
 import TeamLogo from "./TeamLogo";
+import { ClientOnly } from "@tanstack/react-router";
 
 export const GameCard = ({
   game,
@@ -20,9 +21,11 @@ export const GameCard = ({
   const [isCollapsed, setIsCollapsed] = useState(true);
   return (
     <div className="flex flex-col w-full">
-      <h2 className="font-bold text-sm p-2 py-0 pb-1">
-        {dayjs(game.date).format("h:mm A z")}
-      </h2>
+      <ClientOnly>
+        <h2 className="font-bold text-sm p-2 py-0 pb-1">
+          {dayjs(game.date).format("h:mm A z")}
+        </h2>
+      </ClientOnly>
       <div className="bg-slate-700 shadow rounded-lg">
         <div
           className={`bg-slate-900 p-4 ${isCollapsed ? "rounded-lg" : "rounded-t-lg"} flex flex-col`}

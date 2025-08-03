@@ -87,7 +87,7 @@ export function BetSheet() {
     <Drawer>
       <DrawerTrigger asChild>
         {hasBets ? (
-          <div className="w-full h-14 text-bold bg-slate-900 text-white flex items-center justify-between px-4 absolute bottom-0 rounded-t-lg">
+          <div className="w-full h-14 text-bold bg-slate-900 text-white flex items-center justify-between px-4 fixed bottom-0 rounded-t-lg">
             <p>Parlay: {bets.length} legs</p>
             <div className="flex flex-row gap-2">
               <OddsDisplay value={parlayOdds} />
