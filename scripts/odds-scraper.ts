@@ -9,6 +9,29 @@ import { sql } from "drizzle-orm";
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
+const batterNameAliases: Record<string, string> = {
+  "Victor Scott II": "Victor Scott",
+  "Marcelo Mayer": "Marcelo Mayer",
+  "Eugenio Suárez": "Eugenio Suarez",
+  "Dane Myers": "Dane Myers",
+  "Luis Garcia Jr.": "Luis Garcia",
+  "Joey Wiemer": "Joey Wiemer",
+  "Angel Martinez": "Angel Martinez",
+  "Alex Freeland": "Alex Freeland",
+  "Joey Bart": "Joey Bart",
+  "Luis Robert Jr.": "Luis Robert",
+  "Lenyn Sosa": "Lenyn Sosa",
+  "Brandon Lockridge": "Brandon Lockridge",
+  "Garrett Mitchell": "Garrett Mitchell",
+  "Danny Jansen": "Danny Jansen",
+  "Evan Carter": "Evan Carter",
+  "Trevor Larnach": "Trevor Larnach",
+  "Fernando Tatis Jr.": "Fernando Tatis",
+  "Javier Baez": "Javier Baez",
+  "Zach McKinstry": "Zach McKinstry",
+  "Isaac Paredes": "Isaac Paredes",
+};
+
 const main = async () => {
   const gamesResponse = await axios.get(
     "https://troya.xyz/api/dfm/gamesBySs?gameId=null&statistic=Hits&league=mlb",
@@ -47,11 +70,16 @@ const main = async () => {
     const markets = marketsResponse.data;
 
     for (const player of markets[0].players) {
+      const normalizedPlayerName = batterNameAliases[player.name] ?? player.name;
       const batter = await db.query.batterTable.findFirst({
-        where: (batter, { eq }) => eq(batter.name, player.name),
+        where: (batter, { eq }) => eq(batter.name, normalizedPlayerName),
       });
       if (!batter) {
-        console.error("Could not find batter in db", player.name);
+        console.error(
+          "Could not find batter in db",
+          player.name,
+          `-> ${normalizedPlayerName}`,
+        );
         continue;
       }
 

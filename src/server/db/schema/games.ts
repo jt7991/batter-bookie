@@ -1,26 +1,22 @@
-import {
-  pgTable,
-  uuid,
-  timestamp,
-  unique,
-  boolean,
-  text,
-} from "drizzle-orm/pg-core";
+import { sqliteTable, text, integer } from "drizzle-orm/sqlite-core";
 import { teamsTable } from "./teams";
-import { sql } from "drizzle-orm";
 import { relations } from "drizzle-orm";
 
-export const gamesTable = pgTable("games", {
+export const gamesTable = sqliteTable("games", {
   id: text().primaryKey(),
-  date: timestamp("date", { withTimezone: true }).notNull(),
-  homeTeamId: uuid("home_team_id")
+  date: integer("date", { mode: "timestamp" }).notNull(),
+  homeTeamId: text("home_team_id")
     .references(() => teamsTable.id)
     .notNull(),
-  awayTeamId: uuid("away_team_id")
+  awayTeamId: text("away_team_id")
     .references(() => teamsTable.id)
     .notNull(),
-  homeLineupConfirmed: boolean("home_lineup_confirmed").notNull().default(true),
-  awayLineupConfirmed: boolean("away_lineup_confirmed").notNull().default(true),
+  homeLineupConfirmed: integer("home_lineup_confirmed", { mode: "boolean" })
+    .notNull()
+    .default(true),
+  awayLineupConfirmed: integer("away_lineup_confirmed", { mode: "boolean" })
+    .notNull()
+    .default(true),
 });
 
 export const gamesRelations = relations(gamesTable, ({ one }) => ({

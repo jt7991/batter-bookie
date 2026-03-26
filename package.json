@@ -6,9 +6,12 @@
   "scripts": {
     "dev": "vinxi dev",
     "build": "vinxi build",
-    "start": "vinxi start"
+    "start": "vinxi start",
+    "scrape:lineups": "bun run scripts/lineup-scraper.ts",
+    "scrape:odds": "bun run scripts/odds-scraper.ts"
   },
   "dependencies": {
+    "@libsql/client": "^0.17.2",
     "@radix-ui/react-dialog": "^1.1.14",
     "@radix-ui/react-dropdown-menu": "^2.1.15",
     "@radix-ui/react-label": "^2.1.7",
@@ -33,7 +36,6 @@
     "drizzle-orm": "^0.44.2",
     "lucide": "^0.514.0",
     "lucide-react": "^0.528.0",
-    "pg": "^8.16.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "tailwind-merge": "^3.3.1",
@@ -45,7 +47,6 @@
   },
   "devDependencies": {
     "@types/node": "^22.5.4",
-    "@types/pg": "^8.15.4",
     "@types/react": "^19.0.8",
     "@types/react-dom": "^19.0.3",
     "autoprefixer": "^10.4.20",

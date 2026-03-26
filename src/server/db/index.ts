@@ -1,4 +1,13 @@
 import "dotenv/config";
-import { drizzle } from "drizzle-orm/node-postgres";
+import { createClient } from "@libsql/client";
+import { drizzle } from "drizzle-orm/libsql";
 import * as schema from "./schema";
-export const db = drizzle(process.env.DATABASE_URL!, { schema });
+
+const client = createClient({
+  url: process.env.DATABASE_URL ?? "file:sqlite.db",
+});
+
+void client.execute("PRAGMA journal_mode = WAL;");
+void client.execute("PRAGMA foreign_keys = ON;");
+
+export const db = drizzle(client, { schema });

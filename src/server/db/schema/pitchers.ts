@@ -1,10 +1,10 @@
-import { pgTable, uuid, varchar } from "drizzle-orm/pg-core";
+import { sqliteTable, text } from "drizzle-orm/sqlite-core";
 import { teamsTable } from "./teams";
 
-export const pitchersTable = pgTable("pitchers", {
-  id: varchar({ length: 255 }).primaryKey(),
-  name: varchar({ length: 255 }).notNull(),
-  teamId: uuid().references(() => teamsTable.id),
-  handedness: varchar({ length: 255 }).notNull(),
-  url: varchar({ length: 255 }).notNull(),
+export const pitchersTable = sqliteTable("pitchers", {
+  id: text().primaryKey(),
+  name: text().notNull(),
+  teamId: text().references(() => teamsTable.id),
+  handedness: text().notNull(),
+  url: text().notNull(),
 });

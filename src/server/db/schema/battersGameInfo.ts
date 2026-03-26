@@ -1,30 +1,27 @@
 import {
-  pgTable,
-  uuid,
-  varchar,
-  smallint,
+  sqliteTable,
   text,
-  unique,
-} from "drizzle-orm/pg-core";
-import { pitchersTable } from "./pitchers";
+  integer,
+  uniqueIndex,
+} from "drizzle-orm/sqlite-core";
 import { gamesTable } from "./games";
-import { relations, sql } from "drizzle-orm";
+import { relations } from "drizzle-orm";
 import { batterTable } from "./batters";
 
-export const battersGameInfoTable = pgTable(
+export const battersGameInfoTable = sqliteTable(
   "batterGameInfo",
   {
-    id: uuid()
+    id: text()
       .primaryKey()
-      .default(sql`gen_random_uuid()`),
-    position: varchar({ length: 255 }).notNull(),
-    battingOrder: smallint().notNull(),
-    batterId: varchar({ length: 255 }).references(() => batterTable.id),
-    gameId: text().references(() => gamesTable.id),
+      .$defaultFn(() => crypto.randomUUID()),
+    position: text().notNull(),
+    battingOrder: integer("batting_order").notNull(),
+    batterId: text("batter_id").references(() => batterTable.id),
+    gameId: text("game_id").references(() => gamesTable.id),
   },
   (table) => {
     return {
-      batterGameUnique: unique("batterGameUnique").on(
+      batterGameUnique: uniqueIndex("batterGameUnique").on(
         table.batterId,
         table.gameId,
       ),

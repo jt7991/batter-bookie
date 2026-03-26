@@ -364,11 +364,11 @@ async function main() {
               battersGameInfoTable.batterId,
               battersGameInfoTable.gameId,
             ],
-            set: {
-              battingOrder: sql`EXCLUDED."battingOrder"`,
-              position: sql`EXCLUDED.position`,
-            },
-          });
+              set: {
+               battingOrder: sql`EXCLUDED."batting_order"`,
+               position: sql`EXCLUDED.position`,
+              },
+            });
       });
     } catch (err) {
       console.error(err);

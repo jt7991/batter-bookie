@@ -27,9 +27,13 @@ COPY --from=base /app .
 # Install production dependencies only
 RUN bun install --production
 
+# Store SQLite data in a mounted volume
+RUN mkdir -p /data
+ENV DATABASE_URL=file:/data/sqlite.db
+VOLUME ["/data"]
+
 # Expose port
 EXPOSE 3000
 
 # Start the application
 CMD ["bun", "run", "start"]
-

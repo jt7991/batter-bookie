@@ -1,15 +1,15 @@
-import { pgTable, uuid, decimal } from "drizzle-orm/pg-core";
+import { sqliteTable, text } from "drizzle-orm/sqlite-core";
 import { battersGameInfoTable } from "./battersGameInfo";
-import { relations, sql } from "drizzle-orm";
+import { relations } from "drizzle-orm";
 
-export const batterOddsTable = pgTable("batter_odds", {
-  id: uuid()
+export const batterOddsTable = sqliteTable("batter_odds", {
+  id: text()
     .primaryKey()
-    .default(sql`gen_random_uuid()`),
-  batterGameInfoId: uuid(),
-  oneHitOdds: decimal("one_hit_odds", { precision: 10, scale: 2 }),
-  twoHitOdds: decimal("two_hit_odds", { precision: 10, scale: 2 }),
-  threeHitOdds: decimal("three_hit_odds", { precision: 10, scale: 2 }),
+    .$defaultFn(() => crypto.randomUUID()),
+  batterGameInfoId: text("batter_game_info_id"),
+  oneHitOdds: text("one_hit_odds"),
+  twoHitOdds: text("two_hit_odds"),
+  threeHitOdds: text("three_hit_odds"),
 });
 
 export const batterOddsRelations = relations(batterOddsTable, ({ one }) => ({
@@ -18,4 +18,3 @@ export const batterOddsRelations = relations(batterOddsTable, ({ one }) => ({
     references: [battersGameInfoTable.id],
   }),
 }));
-

@@ -1,9 +1,8 @@
-import { sql } from "drizzle-orm";
-import { pgTable, uuid, varchar } from "drizzle-orm/pg-core";
+import { sqliteTable, text } from "drizzle-orm/sqlite-core";
 
-export const teamsTable = pgTable("teams", {
-  id: uuid()
+export const teamsTable = sqliteTable("teams", {
+  id: text()
     .primaryKey()
-    .default(sql`gen_random_uuid()`),
-  name: varchar({ length: 255 }).notNull().unique(),
+    .$defaultFn(() => crypto.randomUUID()),
+  name: text().notNull().unique(),
 });
