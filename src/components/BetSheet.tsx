@@ -9,13 +9,17 @@ import {
   DrawerTrigger,
 } from "./ui/drawer";
 import { useBetSheet } from "~/store/useBetSheetStore";
-import { batterOddsTable, battersGameInfoTable } from "~/server/db/schema";
+import {
+  batterOddsTable,
+  battersGameInfoTable,
+  teamsTable,
+} from "~/server/db/schema";
 import { db } from "~/server/db";
 import { eq } from "drizzle-orm";
 import { zodValidator } from "@tanstack/zod-adapter";
 import { useQueries } from "@tanstack/react-query";
 import z from "zod";
-import { ChevronUp } from "lucide-react";
+import { ChevronUp, X } from "lucide-react";
 import { OddsDisplay } from "./OddsDisplay";
 import { Button } from "./ui/button";
 import { Label } from "@radix-ui/react-label";
@@ -32,7 +36,13 @@ const getOddsByGameInfoId = createServerFn({ method: "GET" })
       with: { batter: true },
       where: eq(battersGameInfoTable.id, data.gameInfoId),
     });
-    return { odds, batter: info?.batter };
+    const team = info?.batter?.teamId
+      ? await db.query.teamsTable.findFirst({
+          where: eq(teamsTable.id, info.batter.teamId),
+        })
+      : null;
+
+    return { odds, batter: info?.batter, team };
   });
 
 const getOddsTypeText = (type: "oneHit" | "twoHit" | "threeHit") => {
@@ -48,7 +58,7 @@ const getOddsTypeText = (type: "oneHit" | "twoHit" | "threeHit") => {
 };
 
 export function BetSheet() {
-  const { bets, clearBets } = useBetSheet();
+  const { bets, clearBets, removeBet } = useBetSheet();
   const [betAmount, setBetAmount] = useState<number>(0);
   const hasBets = bets.length > 0;
   const oddsQuery = useQueries({
@@ -71,9 +81,11 @@ export function BetSheet() {
                 ? res.data?.odds?.twoHitOdds
                 : res.data?.odds?.threeHitOdds;
           return {
+            gameInfoId: bets[index].gameInfoId,
             type: bets[index].type,
             odds: odds ?? null,
             name: res.data?.batter?.name,
+            teamName: res.data?.team?.name,
           };
         }),
       };
@@ -112,24 +124,41 @@ export function BetSheet() {
           </DrawerClose>
         </DrawerHeader>
         <div className="p-4 flex flex-col">
-          <div className="grid grid-cols-12 w-full font-semibold text-sm text-slate-500 px-2">
+          <div className="grid grid-cols-12 w-full font-semibold text-sm text-slate-500 px-2 gap-2">
             <p className="col-span-5">Player</p>
-            <p className="col-span-5">Bet</p>
+            <p className="col-span-4">Bet</p>
             <p className="col-span-2 text-right">Odds</p>
+            <p className="col-span-1" />
           </div>
           <ul className="mt-2 border-b border-slate-800">
             {oddsQuery.data.map((bet, index) => (
               <li
                 key={`${bet.name}-${bet.type}-${index}`}
-                className="grid grid-cols-12 w-full py-3 border-b border-slate-800 last:border-b-0 px-2 items-center"
+                className="grid grid-cols-12 w-full py-3 border-b border-slate-800 last:border-b-0 px-2 items-center gap-2"
               >
-                <p className="col-span-5 truncate font-medium">{bet.name}</p>
-                <p className="col-span-5 text-slate-400">
+                <p className="col-span-5 truncate font-medium">
+                  {bet.name}
+                  {bet.teamName ? (
+                    <span className="ml-1 text-slate-400">({bet.teamName})</span>
+                  ) : null}
+                </p>
+                <p className="col-span-4 text-slate-400">
                   {getOddsTypeText(bet.type)}
                 </p>
                 <p className="col-span-2 text-right">
                   <OddsDisplay value={Number(bet.odds)} />
                 </p>
+                <Button
+                  className="col-span-1 justify-self-end text-slate-400 hover:text-white"
+                  variant="ghost"
+                  size="icon"
+                  onClick={() =>
+                    removeBet({ gameInfoId: bet.gameInfoId, type: bet.type })
+                  }
+                  aria-label={`Remove ${bet.name} from parlay`}
+                >
+                  <X />
+                </Button>
               </li>
             ))}
           </ul>
