@@ -57,6 +57,20 @@ const getOddsTypeText = (type: "oneHit" | "twoHit" | "threeHit") => {
   return "3+ Hits";
 };
 
+const getShortPlayerName = (name?: string) => {
+  if (!name) {
+    return "";
+  }
+
+  const [firstName, ...rest] = name.split(" ");
+
+  if (rest.length === 0) {
+    return name;
+  }
+
+  return `${firstName[0]}. ${rest.join(" ")}`;
+};
+
 export function BetSheet() {
   const { bets, clearBets, removeBet } = useBetSheet();
   const [betAmount, setBetAmount] = useState<number>(0);
@@ -137,7 +151,7 @@ export function BetSheet() {
                 className="grid grid-cols-12 w-full py-3 border-b border-slate-800 last:border-b-0 px-2 items-center gap-2"
               >
                 <p className="col-span-5 truncate font-medium">
-                  {bet.name}
+                  {getShortPlayerName(bet.name)}
                   {bet.teamName ? (
                     <span className="ml-1 text-slate-400">({bet.teamName})</span>
                   ) : null}
